@@ -1,11 +1,12 @@
-package ldap
+package gin
 
 import (
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 const internalServerError = "Internal Server Error"
@@ -40,7 +41,8 @@ func NewLdapInfoHandlerWithLog(load func(context.Context, string) (map[string]in
 	h := LdapInfoHandler{Load: load, Resource: resource, Action: action, Error: logError, Log: writeLog}
 	return &h
 }
-func (h *LdapInfoHandler) GetLdapInfo(w http.ResponseWriter, r *http.Request) {
+func (h *LdapInfoHandler) GetLdapInfo(ctx *gin.Context) {
+	r := ctx.Request
 	uid := ""
 	if r.Method == "GET" {
 		s := r.URL.Path
@@ -51,7 +53,7 @@ func (h *LdapInfoHandler) GetLdapInfo(w http.ResponseWriter, r *http.Request) {
 	} else {
 		b, er1 := ioutil.ReadAll(r.Body)
 		if er1 != nil {
-			http.Error(w, "Body cannot is empty", http.StatusBadRequest)
+			ctx.String(http.StatusBadRequest, "Body cannot is empty")
 			return
 		}
 		uid = strings.Trim(string(b), " ")
@@ -61,21 +63,18 @@ func (h *LdapInfoHandler) GetLdapInfo(w http.ResponseWriter, r *http.Request) {
 		if h.Error != nil {
 			h.Error(r.Context(), err.Error())
 		}
-		respond(w, r, http.StatusInternalServerError, internalServerError, h.Log, h.Resource, h.Action, false, err.Error())
+		respond(ctx, http.StatusInternalServerError, internalServerError, h.Log, h.Resource, h.Action, false, err.Error())
 	} else {
 		if result == nil {
-			respond(w, r, http.StatusNotFound, result, h.Log, h.Resource, h.Action, false, "Not Found")
+			respond(ctx, http.StatusNotFound, result, h.Log, h.Resource, h.Action, false, "Not Found")
 		} else {
-			respond(w, r, http.StatusOK, result, h.Log, h.Resource, h.Action, true, "")
+			respond(ctx, http.StatusOK, result, h.Log, h.Resource, h.Action, true, "")
 		}
 	}
 }
-func respond(w http.ResponseWriter, r *http.Request, code int, result interface{}, writeLog func(context.Context, string, string, bool, string) error, resource string, action string, success bool, desc string) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	err := json.NewEncoder(w).Encode(result)
+func respond(ctx *gin.Context, code int, result interface{}, writeLog func(context.Context, string, string, bool, string) error, resource string, action string, success bool, desc string) {
+	ctx.JSON(code, result)
 	if writeLog != nil {
-		writeLog(r.Context(), resource, action, success, desc)
+		writeLog(ctx.Request.Context(), resource, action, success, desc)
 	}
-	return err
 }
