@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-type LDAPInfoLoader struct {
-	Config LDAPConfig
+type LdapInfoLoader struct {
+	Config LdapConfig
 	Domain string
 }
 
-func NewLDAPService(conf LDAPConfig) (*LDAPInfoLoader, error) {
+func NewLdapInfoLoader(conf LdapConfig) (*LdapInfoLoader, error) {
 	if len(conf.Filter) == 0 {
 		conf.Filter = "userPrincipalName"
 	}
@@ -28,9 +28,9 @@ func NewLDAPService(conf LDAPConfig) (*LDAPInfoLoader, error) {
 			return nil, err
 		}
 	}
-	return &LDAPInfoLoader{Config: conf, Domain: domain}, nil
+	return &LdapInfoLoader{Config: conf, Domain: domain}, nil
 }
-func NewConn(c LDAPConfig) (*ldap.Conn, error) {
+func NewConn(c LdapConfig) (*ldap.Conn, error) {
 	var l *ldap.Conn
 	var err error
 	if c.Timeout > 0 {
@@ -56,7 +56,7 @@ func NewConn(c LDAPConfig) (*ldap.Conn, error) {
 	}
 	return l, err
 }
-func (s *LDAPInfoLoader) Load(ctx context.Context, id string) (map[string]interface{}, error) {
+func (s *LdapInfoLoader) Load(ctx context.Context, id string) (map[string]interface{}, error) {
 	l, er1 := NewConn(s.Config)
 	if er1 != nil {
 		return nil, er1

@@ -1,6 +1,6 @@
 package ldap
 
-type LDAPConfig struct {
+type LdapConfig struct {
 	Server             string            `mapstructure:"server" json:"server,omitempty" gorm:"column:server" bson:"server,omitempty" dynamodbav:"server,omitempty" firestore:"server,omitempty"`
 	BaseDN             string            `mapstructure:"base_dn" json:"baseDN,omitempty" gorm:"column:basedn" bson:"baseDN,omitempty" dynamodbav:"baseDN,omitempty" firestore:"baseDN,omitempty"`
 	Timeout            int64             `mapstructure:"timeout" json:"timeout,omitempty" gorm:"column:timeout" bson:"timeout,omitempty" dynamodbav:"timeout,omitempty" firestore:"timeout,omitempty"`
